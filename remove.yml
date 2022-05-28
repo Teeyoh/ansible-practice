@@ -1,0 +1,19 @@
+---
+
+- hosts: all
+  become: true
+  tasks:
+
+  - name: Update repository index
+    apt:
+      update_cache: yes
+
+  - name: Uninstall nginx
+    apt:
+      name: nginx
+      state: absent
+
+  - name: Uninstall mysql-server package
+    apt:
+      name: mysql-server
+      state: absent
