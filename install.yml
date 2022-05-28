@@ -4,25 +4,44 @@
   become: true
   tasks:
 
-  - name: Update repository index
-    apt:
-      update_cache: yes
-
-  - name: Install and start nginx
+  - name: Install nginx
     apt:
       name: nginx
       state: latest
+      update_cache: yes
   - name: Start nginx service
     service:
       name: nginx
       state: started
 
-  - name: Install and start mysql-server package
+  - name: Install mysql-server package
     apt:
       name: mysql-server
       state: latest
   - name: Start MySQL service
     service:
-      name: mysqld
+      name: mysql
       state: started
       enabled: yes
+
+  - name: Copy Default html file
+    copy:
+      src: default_site.html
+      dest: /var/www/html/index.html
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Install unzip
+    package:
+      name: unzip
+
+  - name: Download and extract database
+    unarchive:
+      src: https://storage.googleapis.com/docs-ops-kochava/test_db.zip
+      dest: ~/test_db
+      remote_src: yes
+      mode: 0755
+      owner: jeff
+      group: jeff
+
