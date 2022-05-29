@@ -49,6 +49,11 @@
       group: root
       mode: 0644
 
+  - name: create /home/jeff/scripts
+    file:
+      path: /home/jeff/scripts
+      state: directory
+
   - name: Copy query.py
     copy:
       src: query.py
