@@ -9,20 +9,37 @@
       name: nginx
       state: latest
       update_cache: yes
+
   - name: Start nginx service
     service:
       name: nginx
       state: started
 
+  - name: Install pip
+    apt:
+      name: pip
+      state: latest
+
   - name: Install mysql-server package
     apt:
       name: mysql-server
       state: latest
+
+  - name: Install mysql-connector-python
+    pip:
+      name: mysql-connector-python
+      state: latest
+
   - name: Start MySQL service
     service:
       name: mysql
       state: started
       enabled: yes
+
+  - name: Install python3-mysqldb
+    apt:
+      name: python3-mysqldb
+      state: latest
 
   - name: Copy Default html file
     copy:
@@ -32,16 +49,51 @@
       group: root
       mode: 0644
 
+  - name: Copy query.py
+    copy:
+      src: query.py
+      dest: /home/jeff/scripts/query.py
+      owner: root
+      group: root
+      mode: 0755
+
   - name: Install unzip
     package:
       name: unzip
 
+  - name: create /home/jeff/test_db
+    file:
+      path: /home/jeff/test_db
+      state: directory
+
   - name: Download and extract database
     unarchive:
       src: https://storage.googleapis.com/docs-ops-kochava/test_db.zip
-      dest: ~/test_db
+      dest: /home/jeff/test_db
       remote_src: yes
       mode: 0755
       owner: jeff
       group: jeff
 
+  - name: Import database
+    shell: mysql -t < employees.sql
+    args:
+      chdir: /home/jeff/test_db
+
+  - name: Create database user with all database privileges
+    community.mysql.mysql_user:
+      name: jeff
+      password: jeff
+      priv: '*.*:ALL'
+      state: present
+
+  - name: Add cronjob
+    ansible.builtin.cron:
+      name: "db query"
+      state: present
+      minute: "*/2"
+      hour: "*"
+      day: "*"
+      month: "*"
+      weekday: "*"
+      job: 'cd /home/jeff/scripts/ && python3 query.py && mv -t /var/www/html/ index.html'
